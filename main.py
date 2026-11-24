@@ -2,8 +2,9 @@
 """Everyday Things, Two Lines, Longer Run — variant A (toaster).
 
 Writes the two-line entry to /output/entry.txt first, then (best effort
-only) a byte-identical copy next to this file. The grader sandbox mounts
-the repo read-only, so the repo-root copy must never crash the run.
+only) a byte-identical copy next to this file via write_repo_copy().
+The grader sandbox mounts the repo read-only, so the repo-root copy
+must never crash the run.
 """
 
 import os
@@ -18,16 +19,25 @@ ENTRY_TEXT = (
 )
 
 
-def main():
-    os.makedirs("/output", exist_ok=True)
-    with open("/output/entry.txt", "w", encoding="utf-8") as f:
-        f.write(ENTRY_TEXT)
+def write_repo_copy():
+    """Best-effort byte-identical copy next to this file.
+
+    The grader sandbox mounts the repo read-only, so any failure here
+    must never crash the run — callers rely on the OSError guard.
+    """
     try:
         here = os.path.dirname(os.path.abspath(__file__))
         with open(os.path.join(here, "entry.txt"), "w", encoding="utf-8") as f:
             f.write(ENTRY_TEXT)
     except OSError:
         pass
+
+
+def main():
+    os.makedirs("/output", exist_ok=True)
+    with open("/output/entry.txt", "w", encoding="utf-8") as f:
+        f.write(ENTRY_TEXT)
+    write_repo_copy()
 
 
 if __name__ == "__main__":
